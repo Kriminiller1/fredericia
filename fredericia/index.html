@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI i praksis workshop 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0A; --card:#1A1A1A; --card2:#141414; --line:#2E2E2E;
+  --text:#F2F2F2; --muted:#A6A6A6; --soft:#D9D9D9;
+  --y:#FFC000; --y-tint:#2A2200; --g:#3FB950; --g-tint:#0F2A16; --r:#F85149; --r-tint:#2D1110;
+  --code:#111111;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Poppins,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.55}
+.wrap{max-width:920px;margin:0 auto;padding:40px 16px 80px}
+h1,h2,h3{font-weight:600;line-height:1.15;margin:0}
+h1{font-size:clamp(34px,6vw,56px);letter-spacing:.5px;text-transform:uppercase}
+h1 span,h2 span{color:var(--y)}
+h2{font-size:clamp(24px,3.6vw,32px);text-transform:uppercase;margin:56px 0 18px}
+h3{font-size:19px;margin-bottom:6px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.kicker{font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+header .meta{margin-top:14px;color:var(--soft)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+button{font:inherit;cursor:pointer;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 16px;font-size:14px;font-weight:500}
+button:hover{border-color:var(--y)}
+button.primary{background:var(--y);color:#0A0A0A;border-color:var(--y);font-weight:600}
+
+/* Forløb */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:stretch;margin-top:30px}
+.phase{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.phase.now{border-color:var(--g)}
+.phase b{display:block;font-size:22px;color:var(--y)}
+.phase.now b{color:var(--g)}
+.phase small{color:var(--muted);font-size:13px}
+.arrow{align-self:center;width:34px;height:34px;border-radius:50%;background:var(--y);color:#0A0A0A;display:grid;place-items:center;font-weight:700}
+
+/* Pointer */
+.points{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.point{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;gap:14px}
+.ico{flex:0 0 46px;height:46px;border-radius:50%;background:var(--y-tint);display:grid;place-items:center}
+.ico svg{width:24px;height:24px;stroke:var(--y);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ico.g{background:var(--g-tint)} .ico.g svg{stroke:var(--g)}
+.point h3{font-size:16px}
+.point p{font-size:14px;color:var(--soft);margin:0}
+
+/* Trafiklys */
+.lights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.light{border-radius:14px;padding:16px 18px;border:1px solid var(--line);background:var(--card)}
+.light .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.light h3{font-size:15px;letter-spacing:1px;display:flex;align-items:center}
+.light p{font-size:14px;color:var(--soft);margin:6px 0 0}
+.light.gr .dot{background:var(--g)} .light.ye .dot{background:var(--y)} .light.re .dot{background:var(--r)}
+.light.gr{border-color:#1f5a2a} .light.ye{border-color:#5a4600} .light.re{border-color:#6a2420}
+.note{font-size:14px;color:var(--muted);margin-top:10px}
+
+/* Øvelser */
+.ex{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 18px;margin-bottom:18px;position:relative}
+.ex.home{border-color:var(--g)}
+.ex-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px}
+.ex-head .ico{flex-basis:50px;height:50px}
+.ex-head .kicker{margin-bottom:2px}
+.ex-head .time{color:var(--y)}
+.ex.home .ex-head .time{color:var(--g)}
+.done{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none}
+.done input{width:20px;height:20px;accent-color:var(--g);cursor:pointer}
+.ex.is-done{opacity:.6}
+ol.steps{margin:6px 0 12px;padding-left:22px}
+ol.steps li{margin-bottom:6px}
+ol.steps li::marker{color:var(--y);font-weight:600}
+.ex.home ol.steps li::marker{color:var(--g)}
+.prompt{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0 12px;position:relative}
+.prompt .lbl{font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.prompt .lbl button{padding:4px 12px;font-size:12px}
+.prompt p{margin:0;color:var(--text);font-size:15px;white-space:pre-wrap}
+.prompt .ph{color:var(--y)}
+.check{display:flex;gap:10px;background:var(--card2);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--soft)}
+.check b{color:var(--y);font-weight:600;white-space:nowrap}
+@media (max-width:720px){.check{flex-direction:column;gap:2px}}
+.ex.home .check b{color:var(--g)}
+.blocks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 12px}
+.blk{border-radius:10px;padding:10px 12px;font-size:13px;color:var(--soft);background:var(--card2);border:1px solid var(--line)}
+.blk b{display:block;font-size:12px;letter-spacing:1px}
+.blk.b1 b{color:#FFC000} .blk.b2 b{color:#FF8A3D} .blk.b3 b{color:#58A6FF} .blk.b4 b{color:#3FB950}
+
+/* Log */
+.log{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:6px}
+.log th{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:left;font-weight:600;padding:0 6px}
+.log td{padding:0 6px;vertical-align:top}
+.log td:first-child{width:34px;color:var(--g);font-weight:600;padding-top:10px}
+textarea{width:100%;min-height:64px;resize:vertical;background:var(--code);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px}
+textarea:focus{outline:none;border-color:var(--g)}
+.notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.notes-grid label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+
+.bring{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.bring div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px}
+.bring b{display:block;color:var(--y);font-size:15px}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer a{color:var(--y)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--y);color:#0A0A0A;padding:8px 18px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+
+@media (max-width:720px){
+  .flow{grid-template-columns:1fr}
+  .arrow{transform:rotate(90deg);justify-self:center}
+  .lights,.blocks,.notes-grid{grid-template-columns:1fr 1fr}
+  .lights{grid-template-columns:1fr}
+  .ex{padding:18px 16px}
+  .ex-head{flex-wrap:wrap}
+  .done{margin-left:0;width:100%}
+  .log thead{display:none}
+  .log,.log tbody,.log tr,.log td{display:block;width:100%}
+  .log tr{margin-bottom:14px}
+  .log td{padding:0 0 6px}
+  .log td:first-child{padding-top:0}
+  .notes-grid{grid-template-columns:1fr}
+}
+@media print{
+  :root{--bg:#fff;--card:#fff;--card2:#f6f6f6;--line:#d0d0d0;--text:#111;--muted:#555;--soft:#222;--y:#B07F00;--y-tint:#FFF3CC;--g:#1E7B34;--g-tint:#E3F5E7;--code:#fafafa}
+  body{font-size:12.5px}
+  .wrap{padding:0;max-width:none}
+  .toolbar,.prompt .lbl button,.toast{display:none!important}
+  h2{margin-top:28px}
+  .ex,.point,.light,.phase,.bring div{break-inside:avoid}
+  .arrow{color:#fff}
+  .ex.is-done{opacity:1}
+  textarea{min-height:56px;border-color:#bbb}
+}
+.days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media(max-width:700px){.days{grid-template-columns:1fr}}
+.day{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.day-head{display:flex;gap:14px;align-items:center}
+.day h3{font-size:17px;margin:0}
+.day .q{font-size:14px;color:var(--soft);margin:0;font-style:italic}
+.day ul{margin:0;padding-left:18px;display:grid;gap:7px;font-size:14px;color:var(--soft)}
+.day li b{color:var(--fg)}
+.day .go{margin-top:auto;font-size:13px;font-weight:600;color:var(--y);text-decoration:none}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.jump a{font-size:13px;font-weight:600;color:var(--fg);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.jump a:hover{border-color:var(--y)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Business Fredericia · Værkstedet · AI i praksis</div>
+  <h1 style="margin-top:10px">Opsummering <span>og øvelser</span></h1>
+  <p class="meta">Workshop 1 den 5. november samlet ét sted: dagens fire trin, trafiklyset og øvelser, du kan lave på dine egne opgaver. Følg med under workshoppen, og brug siden bagefter. Tag erfaringerne med til workshop 2 torsdag 7. januar 2027. Hver øvelse tager 5–15 minutter. Tag én ad gangen.</p>
+  <div class="toolbar">
+    <button class="primary" onclick="window.print()">Print / gem som PDF</button>
+    <button onclick="resetAll()">Nulstil mine afkrydsninger og noter</button>
+  </div>
+
+  <div class="flow" aria-label="Forløbet">
+    <div class="phase"><b>5. NOV</b><small>Workshop 1 · fundamentet</small></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="phase now"><b>AFPRØV</b><small>Efter workshoppen · øvelser og to hjemmeopgaver</small></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="phase"><b>7. JAN</b><small>Workshop 2 · Notebook, automatisering, vibecoding, agenter</small></div>
+  </div>
+  <nav class="jump" aria-label="Indhold"><a href="#dagen">Dagen i fire trin</a><a href="#trafiklys">Trafiklyset</a><a href="#ovelser">Øvelserne</a><a href="#hjemme">Hjemmeopgaver</a><a href="#medbring">Medbring 7. januar</a></nav>
+</header>
+
+<h2 id="dagen">Dagen i <span>fire trin</span></h2>
+<div class="days">
+  <article class="day"><div class="day-head"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-4 10.5V17h8v-3.5A6 6 0 0 0 12 3z"/><path d="M9 21h6"/></svg></div><div><div class="kicker">Trin 1</div><h3>Forstå logikken</h3></div></div>
+    <p class="q">Hvorfor lyder den så sikker, når den tager fejl?</p><ul><li><b>Den gætter det sandsynlige.</b> AI forudsiger det næste ord ud fra mønstre i træningsdata. Den slår ikke op, så den lyder lige sikker, når den har ret, og når den tager fejl.</li><li><b>Tokens, ikke bogstaver.</b> Teksten deles i stykker, så stavning og rim er svære for den.</li><li><b>Det typiske vinder.</b> Uden instruks bliver direktøren en mand og sygeplejersken en kvinde. Vær konkret, bed om variation, og vælg selv.</li><li><b>Stærk til mønstre.</b> Den opsummerer, oversætter og strukturerer på sekunder. Tjek tal, navne, løfter og kilder.</li></ul><a class="go" href="#ex1">Øvelse 1 ↓</a></article>
+  <article class="day"><div class="day-head"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></div><div><div class="kicker">Trin 2</div><h3>Rammerne</h3></div></div>
+    <p class="q">Hvad må du, og hvad skal du tænke over?</p><ul><li><b>EU AI Act: Det er brugen, der afgør kravene.</b> Tekst, idéer og opsummering giver få krav. Fx sortering af jobkandidater får strenge krav fra december 2027.</li><li><b>Sig det, når det er AI.</b> Kundechatbots og deepfakes skal kunne genkendes fra august 2026.</li><li><b>Lær at bruge det.</b> Artikel 4: Virksomheden skal understøtte AI-færdigheder.</li><li><b>En AI-politik på én side:</b> værktøjer, data, kontrol og ansvar.</li><li><b>Kontoen betyder noget.</b> En privat konto har ingen databehandleraftale. En erhvervskonto har, men ansvaret for, hvad du lægger ind og bruger, ligger hos dig.</li></ul><a class="go" href="#ex2">Øvelse 2 og 3 ↓</a></article>
+  <article class="day"><div class="day-head"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/><path d="M17 15l2 2 3-4"/></svg></div><div><div class="kicker">Trin 3</div><h3>Bedre prompts</h3></div></div>
+    <p class="q">Jo mindre AI skal gætte, jo bedre bliver svaret.</p><ul><li><b>20 – 60 – 20.</b> Du forbereder, AI arbejder, og du tjekker og retter.</li><li><b>Fire byggeklodser:</b> rolle, opgave, kontekst og format.</li><li><b>Tal din prompt ind.</b> Tryk på mikrofonen, og fortæl frit i et minut: hvem det er til, hvad du skal bruge det til, hvad du ved, og hvad AI ikke må opfinde.</li><li><b>Lad AI spørge først, og gør den til din kritiker.</b></li><li><b>Giv den et grundlag.</b> Upload en fil, du må dele, og skriv: »Brug kun filen, og sig til, hvis noget mangler.« Bed om kilden, og åbn den.</li></ul><a class="go" href="#ex4">Øvelse 4, 5 og 6 ↓</a></article>
+  <article class="day"><div class="day-head"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div><div><div class="kicker">Trin 4</div><h3>Din første skill</h3></div></div>
+    <p class="q">Gør det, der virkede, til en fast opskrift.</p><ul><li><b>En skill er en opskrift på én slags opgave:</b> trin, tone, eksempler og evt. filer.</li><li><b>Tre ting, der ligner hinanden:</b> Faste instruktioner gælder alle chats. En skill gælder én slags opgave. Et projekt samler chats og filer om én sag.</li><li><b>Test den på nye opgaver,</b> og ret det, der ikke virker.</li><li><b>I januar bygger vi videre.</b> Jo mere selvstændig AI, jo mere ansvar for at kontrollere.</li></ul><a class="go" href="#ex7">Øvelse 7 ↓</a></article>
+</div>
+
+<h2 id="trafiklys">Før du starter: <span>trafiklyset</span></h2>
+<div class="lights">
+  <div class="light gr"><h3><span class="dot"></span>GRØNT · KØR</h3><p>Offentligt eller fiktivt: produktfakta, publicerede tekster og øvedata.</p></div>
+  <div class="light ye"><h3><span class="dot"></span>GULT · AFKLAR FØRST</h3><p>Kundehenvendelser, interne priser og aftaler. Brug en fiktiv udgave, til det er afklaret.</p></div>
+  <div class="light re"><h3><span class="dot"></span>RØDT · ALDRIG HER</h3><p>Adgangskoder, CPR-numre, løn og helbredsoplysninger.</p></div>
+</div>
+<p class="note">Et ændret navn gør ikke automatisk materialet anonymt. »Kunde A« kan stadig genkendes ud fra sammenhængen. Følg altid din virksomheds egne regler, hvis de er strengere.</p>
+
+<h2 id="ovelser"><span>Øvelserne</span></h2>
+
+<!-- Ø1 -->
+<section class="ex" id="ex1" data-id="ex1">
+  <div class="ex-head">
+    <div class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg></div>
+    <div><div class="kicker">Øvelse 1 · <span class="time">5 min</span></div><h3>Find selv AI's svage punkter</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <p>Brug en ny chat i den AI, du plejer at bruge. Prøv gerne to forskellige, fx ChatGPT og Gemini.</p>
+  <ol class="steps">
+    <li>Skriv: <i>»Giv mig et tal mellem 1 og 10.«</i> Får du også 7?</li>
+    <li>Skriv: <i>»Skriv 10 ord, der rimer på træ.«</i> Tæl, hvor mange der er rigtige danske ord.</li>
+    <li>Bed om et billede af »en direktør« og et af »en sygeplejerske«. Bed derefter om variation og se forskellen.</li>
+  </ol>
+  <div class="check"><b>Se efter</b> Siger den nogensinde, at den er i tvivl? Det er derfor, du altid selv skal tjekke det vigtige.</div>
+</section>
+
+<!-- Ø2 -->
+<section class="ex" id="ex2" data-id="ex2">
+  <div class="ex-head">
+    <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 10h0a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></div>
+    <div><div class="kicker">Øvelse 2 · <span class="time">10 min</span></div><h3>Sæt din ChatGPT op</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <ol class="steps">
+    <li><b>Tjek kontoen.</b> På en personlig konto (Free, Go, Plus, Pro) kan dine chats bruges til træning. Slå det fra under <i>Indstillinger → Datakontrol → »Forbedr modellen for alle«</i>. Bruger du Gemini, hedder det <i>»Bevar aktivitet«</i>. En personlig konto har ingen databehandleraftale med din virksomhed. En erhvervskonto har, men aftalen tænker ikke for dig: Ansvaret for, hvad du lægger ind og bruger, ligger hos dig.</li>
+    <li><b>Beskriv dig selv</b> under <i>Personalisering → Faste instruktioner</i>. Del kun det, du må dele.</li>
+    <li><b>Test det.</b> Stil det samme spørgsmål før og efter. Hvad blev bedre, og hvad ramte stadig ved siden af?</li>
+  </ol>
+  <div class="prompt"><div class="lbl">Om dig og dit arbejde <button onclick="copyP(this)">Kopiér</button></div>
+<p>Jeg driver <span class="ph">[virksomhed]</span>. Vi hjælper <span class="ph">[målgruppe]</span> med <span class="ph">[opgaver]</span>. Mine typiske opgaver er <span class="ph">[to eksempler]</span>. Brug kun fakta, jeg giver dig, når du skriver om vores produkter og priser.</p></div>
+  <div class="prompt"><div class="lbl">Sådan skal den svare <button onclick="copyP(this)">Kopiér</button></div>
+<p>Svar på dansk. Skriv konkret og uden reklameord. Markér antagelser. Spørg, når en manglende oplysning er afgørende. Hjælp mig med at opdage fejl i mit grundlag.</p></div>
+  <div class="check"><b>Uden indstillingen?</b> Gem teksterne i et dokument, og indsæt dem øverst i en ny chat. Det virker på alle konti.</div>
+</section>
+
+<!-- Ø3 Gemini -->
+<section class="ex" data-id="exgem">
+  <div class="ex-head">
+    <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/><path d="M19 3l.6 1.4L21 5l-1.4.6L19 7l-.6-1.4L17 5l1.4-.6z"/></svg></div>
+    <div><div class="kicker">Øvelse 3 · <span class="time">10 min</span></div><h3>Giv din Gemini en personlighed</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <p>Gemini kan også få faste instruktioner, men stedet afhænger af kontoen. Find den menu, din konto har:</p>
+  <ol class="steps">
+    <li><b>Gratis konto:</b> <i>Mere → Gems</i>. En Gem er en fast assistent med sine egne instruktioner, fx en korrekturlæser eller en tilbudshjælper. Fra 17. november 2026 begynder Google at lave personlige Gems om til Skills automatisk, så gem også din instruktion i et dokument. Ser du allerede Skills, så brug dem. Under <i>Customize</i> finder du connectors: forbindelser, som lader Gemini hente oplysninger fra dine andre Google-tjenester, fx Gmail, Drev, Kalender, Maps og YouTube. Så kan du skrive »Find mailen fra Hansen, og lav et udkast til svar«. Slå kun de forbindelser til, du har brug for, for Gemini kan læse det, den er koblet på. Under <i>Scheduled</i> kan Gemini køre en opgave på et fast tidspunkt. Det kræver, at »Bevar aktivitet« er slået til, og så kan dine chats bruges til træning.</li>
+    <li><b>Personlig betalt konto:</b> <i>Indstillinger → Personlig kontekst</i>. Slå hukommelsen til, så Gemini lærer af dine tidligere chats. Så deler du mere med Gemini, men det er prisen for, at den fungerer optimalt. Skriv også »Dine instruktioner til Gemini«. Kontoen har ingen databehandleraftale, så hold kunde- og persondata ude.</li>
+    <li><b>Workspace (erhverv):</b> <i>Tilpas → Færdigheder → Opret</i>. Lav en kompetence (skill), som du og kollegerne kan genbruge. Her er der ingen personlig kontekst, men virksomheden har kontrollen over data. Ansvaret for, hvad du lægger ind, er stadig dit.</li>
+    <li><b>Test det.</b> Giv den samme opgave til din Gem eller kompetence og til en almindelig chat. Hvad blev bedre?</li>
+  </ol>
+  <div class="prompt"><div class="lbl">Instruktion til din Gem eller kompetence <button onclick="copyP(this)">Kopiér</button></div>
+<p>Du er min <span class="ph">[rolle, fx korrekturlæser]</span> hos <span class="ph">[virksomhed]</span>. Du hjælper med <span class="ph">[opgave]</span>. Skriv på dansk, konkret og uden reklameord. Brug kun fakta, jeg giver dig, og spørg, når noget mangler. Slut med en kort liste over det, du har ændret.</p></div>
+  <div class="check"><b>Kan du ikke finde menuen?</b> Navnene blander dansk og engelsk og flytter sig med nye versioner. Spørg Gemini selv: »Hvor laver jeg en Gem eller en skill på min konto?«</div>
+</section>
+
+<!-- Ø3 -->
+<section class="ex" id="ex4" data-id="ex3">
+  <div class="ex-head">
+    <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
+    <div><div class="kicker">Øvelse 4 · <span class="time">10 min</span></div><h3>Fra vag til præcis prompt</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <p>Vælg en rigtig opgave fra din uge, fx et kundesvar, et tilbud eller et nyhedsbrev. Skriv den først vagt og derefter med de fire byggeklodser, og sammenlign svarene.</p>
+  <div class="blocks">
+    <div class="blk b1"><b>ROLLE</b>Hvem skal AI være?</div>
+    <div class="blk b2"><b>OPGAVE</b>Hvad skal laves?</div>
+    <div class="blk b3"><b>KONTEKST</b>Målgruppe, tone og fakta</div>
+    <div class="blk b4"><b>FORMAT</b>Længde og form</div>
+  </div>
+  <div class="prompt"><div class="lbl">Vag <button onclick="copyP(this)">Kopiér</button></div><p>Skriv et svar til en kunde.</p></div>
+  <div class="prompt"><div class="lbl">Præcis <button onclick="copyP(this)">Kopiér</button></div>
+<p>Du hjælper med kundeservice i <span class="ph">[din virksomhed]</span>. Skriv et svar til en kunde, der spørger <span class="ph">[spørgsmål]</span>. Tonen er venlig og ligefrem. Brug kun oplysningerne nedenfor, og opfind ikke priser eller leveringstider. Højst 80 ord. Markér det, du ikke ved.
+
+<span class="ph">[indsæt fakta – kun grønne data]</span></p></div>
+  <div class="check"><b>Se efter</b> Hvad gættede AI på i den vage version, som du ikke havde sagt?</div>
+</section>
+
+<!-- Ø4 -->
+<section class="ex" id="ex5" data-id="ex4">
+  <div class="ex-head">
+    <div class="ico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5"/><path d="M12 15h.01"/></svg></div>
+    <div><div class="kicker">Øvelse 5 · <span class="time">5 min</span></div><h3>Lad AI spørge først, og gør den til din kritiker</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <p><b>Metaprompting:</b> AI'en finder hullerne i dit oplæg, før den går i gang.</p>
+  <div class="prompt"><div class="lbl">Lad den spørge <button onclick="copyP(this)">Kopiér</button></div>
+<p>Jeg skal <span class="ph">[opgave]</span>. Før du svarer: Stil mig 3–5 spørgsmål om formål, målgruppe, format og grænser. Ét ad gangen. Skriv derefter den bedst mulige prompt til opgaven.</p></div>
+  <p><b>Kritikeren:</b> Når du har fået et svar, så stil ét af disse spørgsmål.</p>
+  <div class="prompt"><div class="lbl">Kritiker-spørgsmål <button onclick="copyP(this)">Kopiér</button></div>
+<p>Hvilke antagelser bygger dit svar på? Hvad er det svageste ved dine forslag? Hvad skal jeg tjekke, før jeg bruger det?</p></div>
+</section>
+
+<!-- Ø5 -->
+<section class="ex" data-id="ex5">
+  <div class="ex-head">
+    <div class="ico"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 18v-6M9 15l3-3 3 3"/></svg></div>
+    <div><div class="kicker">Øvelse 6 · <span class="time">10 min</span></div><h3>Svar ud fra din egen fil</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <ol class="steps">
+    <li>Find en <b>grøn</b> fil, fx en offentlig prisliste, en produktbrochure eller en side fra jeres hjemmeside som PDF.</li>
+    <li>Tryk på <b>+</b> i chatten og upload filen.</li>
+    <li>Stil et spørgsmål, som en kunde kunne stille, med prompten nedenfor.</li>
+    <li>Åbn filen, og tjek mindst én oplysning selv.</li>
+  </ol>
+  <div class="prompt"><div class="lbl">Brug kun filen <button onclick="copyP(this)">Kopiér</button></div>
+<p>En kunde spørger: <span class="ph">[spørgsmål]</span>. Skriv et svar på højst 80 ord. Brug kun filen, og sig til, hvis noget mangler. Angiv side, afsnit eller række for hver oplysning.</p></div>
+  <div class="check"><b>Husk</b> Tekst i PDF og Word læses godt. I regneark skal AI regne, og det er der, fejlene opstår. På fotos og scanninger skal du tjekke navne, tal og datoer.</div>
+</section>
+
+<!-- Ø6 -->
+<section class="ex" id="ex7" data-id="ex6">
+  <div class="ex-head">
+    <div class="ico"><svg viewBox="0 0 24 24"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M15 9h.01M17.8 6.2 19 5M3 21l9-9M12.2 6.2 11 5"/></svg></div>
+    <div><div class="kicker">Øvelse 7 · <span class="time">15 min</span></div><h3>Byg eller forbedr din skill</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <ol class="steps">
+    <li><b>Vælg</b> én opgave, du løser hver uge, og tag den prompt, der virkede i øvelse 4 eller 5.</li>
+    <li><b>Lad AI skrive opskriften</b> med prompten nedenfor.</li>
+    <li><b>Gem og test.</b> Skriv »Gem som skill«. Åbn en ny chat, giv den en ny variant af opgaven, og ret det, der ikke virker.</li>
+  </ol>
+  <div class="prompt"><div class="lbl">Skriv min skill <button onclick="copyP(this)">Kopiér</button></div>
+<p>Skriv en instruktion, så du kan løse denne slags opgave på samme måde næste gang: formål, trin, tone, format og hvad du aldrig må opfinde (priser, leveringstider, løfter). Stil mig først tre spørgsmål.</p></div>
+  <div class="check"><b>Har din konto ikke skills?</b> Gem opskriften i et dokument, og indsæt den i en ny chat. <b style="margin-left:6px">Erfaren?</b> Tilføj et godt eksempel eller en skabelon som fil.</div>
+</section>
+
+<h2 id="hjemme">To <span>hjemmeopgaver</span> til 7. januar</h2>
+
+<!-- H1 -->
+<section class="ex home" data-id="home1">
+  <div class="ex-head">
+    <div class="ico g"><svg viewBox="0 0 24 24"><path d="M10 6h11M10 12h11M10 18h11"/><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></svg></div>
+    <div><div class="kicker">Hjemmeopgave A · <span class="time">løbende</span></div><h3>Brug din skill på tre rigtige opgaver</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <p>Notér kort for hver opgave. Det er dit materiale til opsamlingen 7. januar.</p>
+  <table class="log">
+    <thead><tr><th></th><th>Opgave</th><th>Hvad virkede?</th><th>Hvad måtte du rette?</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><textarea data-k="a1o" aria-label="Opgave 1"></textarea></td><td><textarea data-k="a1v" aria-label="Opgave 1, hvad virkede"></textarea></td><td><textarea data-k="a1r" aria-label="Opgave 1, hvad rettede du"></textarea></td></tr>
+      <tr><td>2</td><td><textarea data-k="a2o" aria-label="Opgave 2"></textarea></td><td><textarea data-k="a2v" aria-label="Opgave 2, hvad virkede"></textarea></td><td><textarea data-k="a2r" aria-label="Opgave 2, hvad rettede du"></textarea></td></tr>
+      <tr><td>3</td><td><textarea data-k="a3o" aria-label="Opgave 3"></textarea></td><td><textarea data-k="a3v" aria-label="Opgave 3, hvad virkede"></textarea></td><td><textarea data-k="a3r" aria-label="Opgave 3, hvad rettede du"></textarea></td></tr>
+    </tbody>
+  </table>
+  <div class="check" style="margin-top:8px"><b>Gem</b> ét godt svar og én fejl. Dem bruger vi til at gøre jeres skills bedre i januar.</div>
+</section>
+
+<!-- H2 -->
+<section class="ex home" data-id="home2">
+  <div class="ex-head">
+    <div class="ico g"><svg viewBox="0 0 24 24"><path d="M12 2c.6 5.4 4.6 9.4 10 10-5.4.6-9.4 4.6-10 10-.6-5.4-4.6-9.4-10-10 5.4-.6 9.4-4.6 10-10z"/></svg></div>
+    <div><div class="kicker">Hjemmeopgave B · <span class="time">ca. 30 min</span></div><h3>Research-øvelse: Lad AI lære dig Gemini Notebook</h3></div>
+    <label class="done"><input type="checkbox"> Gjort</label>
+  </div>
+  <p>Vi gennemgår ikke Gemini Notebook på workshoppen. I stedet bruger du det, du lærte 5. november, til at lære dig selv værktøjet med AI. 7. januar starter vi med jeres erfaringer.</p>
+  <ol class="steps">
+    <li><b>Lad AI spørge først.</b> Bed ChatGPT eller Gemini om at lægge en kort læreplan for dig.</li>
+  </ol>
+  <div class="prompt"><div class="lbl">Din læreplan <button onclick="copyP(this)">Kopiér</button></div>
+<p>Jeg vil lære at bruge Googles Gemini Notebook i mit arbejde som <span class="ph">[din rolle]</span>. Stil mig først tre spørgsmål om mit arbejde, ét ad gangen. Lav derefter en læreplan på 20 minutter: hvad værktøjet er, hvad det er godt og dårligt til, og tre små øvelser, jeg kan lave med offentlige dokumenter.</p></div>
+  <ol class="steps" start="2">
+    <li><b>Gør AI til din kritiker.</b> AI-værktøjer ændrer sig hurtigt, og AI'en kan tage fejl om sig selv.</li>
+  </ol>
+  <div class="prompt"><div class="lbl">Tjek påstandene <button onclick="copyP(this)">Kopiér</button></div>
+<p>Hvilke af dine oplysninger om Gemini Notebook er du mest usikker på? Hvor kan jeg tjekke dem på Googles egne sider?</p></div>
+  <ol class="steps" start="3">
+    <li><b>Prøv det selv.</b> Log ind med din Google-konto, opret en notesbog, og læg 2–3 <b>grønne</b> kilder ind, fx jeres hjemmeside, en produktbrochure eller en offentlig rapport fra din branche.</li>
+    <li><b>Stil tre spørgsmål</b> til dine kilder, og klik på kildehenvisningerne. Passer svaret med det, der står i kilden?</li>
+    <li><b>Notér</b> nedenfor, hvad du fandt ud af.</li>
+  </ol>
+  <div class="notes-grid">
+    <div><label for="n1">Tre ting, Notebook kan bruges til i mit arbejde</label><textarea id="n1" data-k="n1"></textarea></div>
+    <div><label for="n2">Én ting, der overraskede mig</label><textarea id="n2" data-k="n2"></textarea></div>
+    <div><label for="n3">Én ting, AI'en sagde om værktøjet, som ikke passede</label><textarea id="n3" data-k="n3"></textarea></div>
+    <div><label for="n4">Mit spørgsmål til 7. januar</label><textarea id="n4" data-k="n4"></textarea></div>
+  </div>
+  <div class="check" style="margin-top:12px"><b>Trafiklyset gælder også her</b> Notebook følger din Google-konto. På en privat konto kan chats bruges til træning, medmindre »Bevar aktivitet« er slået fra. Brug kun grønne kilder. Tip: Notesbøger i Gemini hænger sammen med Googles værktøj NotebookLM. Kilder, du lægger ind det ene sted, dukker op det andet sted, så søg gerne på begge navne.</div>
+</section>
+
+<h2 id="medbring">Medbring <span>7. januar</span></h2>
+<div class="bring">
+  <div><b>Din skill</b>Opskriften, som den ser ud nu</div>
+  <div><b>Ét godt svar</b>Fra en af dine tre opgaver</div>
+  <div><b>Én fejl</b>Og hvad du måtte rette</div>
+  <div><b>Notebook-noter</b>Fra research-øvelsen</div>
+  <div><b>Ét ønske</b>En opgave, du vil have automatiseret</div>
+  <div><b>Google-login</b>Tjek, at du kan logge ind</div>
+</div>
+
+<footer>
+  Niels Møller Mikkelsen · Grumpy Productions · 93 50 70 49 · <a href="mailto:nm@grumpyproductions.dk">nm@grumpyproductions.dk</a><br>
+  Dine afkrydsninger og noter gemmes kun i din egen browser på denne computer. Print siden eller gem den som PDF, hvis du vil beholde dem.
+</footer>
+</div>
+<div class="toast" id="toast">Kopieret</div>
+
+<script>
+const KEY='bf-oeveark-ws1';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function save(s){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+const state=load();
+document.querySelectorAll('.ex').forEach(ex=>{
+  const id=ex.dataset.id, cb=ex.querySelector('.done input');
+  if(!cb)return;
+  cb.checked=!!(state.done&&state.done[id]); ex.classList.toggle('is-done',cb.checked);
+  cb.addEventListener('change',()=>{state.done=state.done||{};state.done[id]=cb.checked;ex.classList.toggle('is-done',cb.checked);save(state)});
+});
+const heads=[...document.querySelectorAll('.log th')].map(th=>th.textContent);
+document.querySelectorAll('.log tr').forEach(tr=>tr.querySelectorAll('td').forEach((td,i)=>{const t=td.querySelector('textarea');if(t&&heads[i])t.placeholder=heads[i]}));
+document.querySelectorAll('textarea[data-k]').forEach(t=>{
+  const k=t.dataset.k; state.notes=state.notes||{};
+  if(state.notes[k])t.value=state.notes[k];
+  t.addEventListener('input',()=>{state.notes[k]=t.value;save(state)});
+});
+function resetAll(){
+  if(!confirm('Slet dine afkrydsninger og noter på denne side?'))return;
+  try{localStorage.removeItem(KEY)}catch(e){}
+  location.reload();
+}
+function copyP(btn){
+  const txt=btn.closest('.prompt').querySelector('p').innerText.trim();
+  const done=()=>{const t=document.getElementById('toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1200)};
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(done,()=>fallback(txt,done))}else fallback(txt,done);
+}
+function fallback(txt,done){const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){}a.remove()}
+</script>
+</body>
+</html>
